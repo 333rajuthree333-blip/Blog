@@ -1,9 +1,9 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const axios = require('axios');
 
 class AIService {
     constructor() {
-        this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || 'your-gemini-api-key');
-        this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        this.apiKey = process.env.OPENROUTER_API_KEY || 'your-openrouter-api-key';
+        this.baseURL = 'https://openrouter.ai/api/v1';
     }
 
     async generateBlogPost(prompt) {
@@ -24,14 +24,12 @@ Format your response as JSON with the following structure:
     "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
 }`;
 
-            const result = await this.model.generateContent(fullPrompt);
-            const response = await result.response;
-            const text = response.text();
+            const response = await this.callOpenRouter(fullPrompt);
 
             // Try to parse JSON response
             try {
                 // Clean the response text (remove markdown code blocks if present)
-                let cleanText = text.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+                let cleanText = response.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
 
                 const parsed = JSON.parse(cleanText);
                 return {
@@ -51,7 +49,7 @@ Format your response as JSON with the following structure:
                 return {
                     success: false,
                     error: 'Failed to parse AI response. Please try again.',
-                    rawResponse: text
+                    rawResponse: response
                 };
             }
         } catch (error) {
@@ -60,6 +58,32 @@ Format your response as JSON with the following structure:
                 success: false,
                 error: 'Failed to generate blog post. Please try again.'
             };
+        }
+    }
+
+    async callOpenRouter(prompt) {
+        try {
+            const response = await axios.post(`${this.baseURL}/chat/completions`, {
+                model: "deepseek/deepseek-chat",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ]
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'HTTP-Referer': 'https://your-blog-site.com',
+                    'X-Title': 'Blog Website',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            return response.data.choices[0].message.content;
+        } catch (error) {
+            console.error('OpenRouter API error:', error.response?.data || error.message);
+            throw new Error('Failed to call OpenRouter API');
         }
     }
 }
