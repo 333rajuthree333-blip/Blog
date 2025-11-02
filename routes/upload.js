@@ -5,9 +5,17 @@ const fs = require('fs');
 const router = express.Router();
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(process.env.VERCEL ? '/tmp' : __dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+const isVercel = process.env.VERCEL || process.env.VERCEL_ENV || process.env.LAMBDA_TASK_ROOT;
+const uploadsDir = isVercel ? '/tmp/uploads' : path.join(__dirname, '../uploads');
+console.log('Upload directory:', uploadsDir, 'Is Vercel:', isVercel);
+
+try {
+    if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        console.log('Created uploads directory:', uploadsDir);
+    }
+} catch (error) {
+    console.error('Error creating uploads directory:', error);
 }
 
 // Configure multer for file uploads
