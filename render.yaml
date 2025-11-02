@@ -2,6 +2,7 @@ services:
   - type: web
     name: blog-website
     runtime: java
+    runtimeVersion: 21
     buildCommand: mvn clean package -DskipTests
     startCommand: java -Dserver.port=$PORT -jar target/blog-website-1.0.0.jar
     envVars:
