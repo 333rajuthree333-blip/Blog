@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 class AIService {
     constructor() {
         this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || 'your-gemini-api-key');
-        this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+        this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     }
 
     async generateBlogPost(prompt) {
@@ -30,7 +30,10 @@ Format your response as JSON with the following structure:
 
             // Try to parse JSON response
             try {
-                const parsed = JSON.parse(text);
+                // Clean the response text (remove markdown code blocks if present)
+                let cleanText = text.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+
+                const parsed = JSON.parse(cleanText);
                 return {
                     success: true,
                     data: {
@@ -44,6 +47,7 @@ Format your response as JSON with the following structure:
                 };
             } catch (parseError) {
                 // If JSON parsing fails, try to extract information from text
+                console.error('JSON parse error:', parseError);
                 return {
                     success: false,
                     error: 'Failed to parse AI response. Please try again.',
