@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../config/database');
+const { pool } = require('../config/database');
 const aiService = require('../services/aiService');
 
 // Generate blog post using AI
@@ -196,6 +196,53 @@ router.delete('/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting post:', error);
         res.status(500).json({ error: 'Failed to delete post' });
+    }
+});
+
+// Chatbot endpoint using CHATBOT_API_KEY
+router.post('/chatbot', async (req, res) => {
+    try {
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
+
+        const chatbotApiKey = process.env.CHATBOT_API_KEY;
+        if (!chatbotApiKey) {
+            return res.status(500).json({ error: 'Chatbot API key not configured' });
+        }
+
+        const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+            model: "deepseek/deepseek-chat",
+            messages: [
+                {
+                    role: "user",
+                    content: `You are a helpful AI assistant for a Technology & Science blog called 'TechSci'. The user is asking: "${message}"
+
+Please provide a helpful, accurate, and engaging response. Keep your response concise but informative. If the question is about technology or science, provide relevant insights. Be friendly and conversational.
+
+Current page context: This is a technology and science blog with articles about AI, quantum computing, space exploration, programming, and scientific discoveries.`
+                }
+            ]
+        }, {
+            headers: {
+                'Authorization': `Bearer ${chatbotApiKey}`,
+                'HTTP-Referer': 'https://your-blog-site.com',
+                'X-Title': 'Blog Website Chatbot',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const botResponse = response.data.choices[0].message.content;
+
+        res.json({
+            response: botResponse,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Chatbot error:', error.response?.data || error.message);
+        res.status(500).json({ error: 'Failed to get chatbot response' });
     }
 });
 

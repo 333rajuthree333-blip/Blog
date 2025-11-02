@@ -4,23 +4,40 @@ const { Pool } = require('pg');
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    max: 10, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+    max: 5, // Reduced for serverless
+    idleTimeoutMillis: 10000, // Shorter timeout
+    connectionTimeoutMillis: 5000, // Longer timeout for serverless
 });
 
 // Handle pool errors
 pool.on('error', (err, client) => {
-    console.error('Unexpected error on idle client', err);
+    console.error('Unexpected error on idle client:', err.message);
 });
 
 // Test connection on startup
 pool.query('SELECT NOW()', (err, res) => {
     if (err) {
-        console.error('Database connection error:', err);
+        console.error('Database connection test failed:', err.message);
+        console.error('Connection string exists:', !!process.env.DATABASE_URL);
     } else {
-        console.log('Database connected successfully');
+        console.log('Database connected successfully at:', new Date().toISOString());
     }
 });
 
-module.exports = pool;
+// Export query function for easier use
+const query = (text, params) => {
+    const start = Date.now();
+    return pool.query(text, params).then(res => {
+        const duration = Date.now() - start;
+        console.log('Executed query', { text, duration, rows: res.rowCount });
+        return res;
+    }).catch(err => {
+        console.error('Query error:', err.message);
+        throw err;
+    });
+};
+
+module.exports = {
+    pool,
+    query
+};
