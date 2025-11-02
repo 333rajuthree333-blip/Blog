@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "app.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/app.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/app.js"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "postgresql://neondb_owner:npg_7uAziTVoml6R@ep-fragrant-sea-a1edrh7r-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require",
+    "OPENROUTER_API_KEY": "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",
+    "CHATBOT_API_KEY": "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",
+    "JWT_SECRET": "vercel-blog-secure-jwt-secret-key-2024-change-this",
+    "ADMIN_USERNAME": "admin",
+    "ADMIN_PASSWORD": "SecureAdminPass123!"
+  }
+}
