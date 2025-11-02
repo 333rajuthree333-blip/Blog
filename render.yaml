@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: blog-website
+    runtime: java
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -Dserver.port=$PORT -jar target/blog-website-1.0.0.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://ep-fragrant-sea-a1edrh7r-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+      - key: SPRING_DATASOURCE_USERNAME
+        value: neondb_owner
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: npg_7uAziTVoml6R
+      - key: OPENROUTER_API_KEY
+        value: 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
+      - key: CHATBOT_API_KEY
+        value: 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
+      - key: JWT_SECRET
+        value: railway-blog-secure-jwt-secret-key-2024-change-this
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        value: SecureAdminPass123!
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_JPA_SHOW_SQL
+        value: false
+      - key: FILE_UPLOAD_DIR
+        value: /app/uploads
